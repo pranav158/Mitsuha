@@ -1,0 +1,22 @@
+# Environment
+.env
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# yt-dlp binaries — download separately
+yt-dlp/windows/*
+yt-dlp/linux/*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
