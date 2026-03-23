@@ -35,14 +35,15 @@
 |---|---|
 | 🎵 **Stream from YouTube** | Direct yt-dlp → FFmpeg pipe, no URL caching, no 403s |
 | ⚡ **Fast startup** | Voice join + search run in parallel |
-| 🔀 **Queue management** | Add, skip, stop, view queue (up to 100 songs) |
+| 🔀 **Queue management** | Add, skip, stop, view queue (up to 50 songs) |
 | ⏸️ **Pause / Resume** | Full playback control |
-| 📋 **Playlist support** | Load YouTube playlists (up to 50 tracks) |
-| 🌙 **24/7 mode** | Stay in VC, pause when empty, resume on return |
-| 🗳️ **Vote skip** | Democratic skipping for shared listening |
+| 📋 **Playlist & radio support** | Load YouTube playlists, mixes, radio (up to 50 tracks) |
+| 🗳️ **Smart vote skip** | Instant for Admin/DJ, democratic vote for everyone else |
+| 🧠 **Search cache** | Metadata cached 10 min — repeat searches skip yt-dlp entirely |
 | 🛡️ **DAVE E2EE** | Supports Discord's mandatory end-to-end encryption protocol |
-| 🌐 **Proxy support** | Route all YouTube traffic through a SOCKS5 proxy |
-| 🔁 **Auto-restart** | Built-in crash recovery manager |
+| 🌐 **Proxy support** | Route all YouTube traffic through a SOCKS5/HTTP proxy |
+| 🔁 **Auto-restart** | Built-in crash recovery via `start.js` |
+| 🔐 **Hardened security** | Input sanitization, process isolation, no secret leaks to subprocesses |
 
 ---
 
@@ -51,8 +52,8 @@
 ```
 /play <query>
   │
-  ├─ [parallel] Join voice channel (DAVE handshake)
-  └─ [parallel] yt-dlp --dump-json (metadata + formats)
+  ├─ [parallel] Join voice channel (DAVE E2EE handshake)
+  └─ [parallel] yt-dlp --dump-json (metadata, cached 10 min)
               │
               └─ yt-dlp -o - (stream) ──pipe──► FFmpeg ──► OggOpus ──► Discord
 ```
@@ -68,11 +69,9 @@ No intermediate URLs. yt-dlp streams directly into FFmpeg's stdin. This eliminat
 > YouTube detects and blocks non-residential IPs. Running on bare VPS = `HTTP 403` or empty search results.
 
 **Recommended setup:**
-1. Get a **residential proxy**
-2. Set up **.env** on your server with your proxy address
-3. e.g. `PROXY_URL=socks5://127.0.0.1:1080` in your `.env`
-
-The bot will test the proxy connection on startup and log the result.
+1. Get a **residential proxy** (WireGuard + WireProxy works great)
+2. Set `PROXY_URL=socks5://127.0.0.1:1080` in your `.env`
+3. The bot tests the proxy connection on startup and logs the result
 
 ---
 
@@ -81,9 +80,11 @@ The bot will test the proxy connection on startup and log the result.
 - **Node.js** 22+
 - **FFmpeg** installed and in PATH (`ffmpeg` command works)
 - **yt-dlp** binary (see below)
-- **MongoDB** (free tier works fine)
-- **Discord Bot** with intents: `Guilds`, `GuildVoiceStates`, `GuildMessages`, `MessageContent`
-- **Residential IP / proxy** (see above — required for YouTube access)
+- **Discord Bot** with intents: `Guilds`, `GuildVoiceStates`
+- **Residential IP / proxy** (required for YouTube access on VPS)
+
+> [!NOTE]
+> No database required. All state is in-memory — the bot is fully stateless between restarts.
 
 ---
 
@@ -107,6 +108,20 @@ yt-dlp/
 └── windows/yt-dlp.exe  ← Windows
 ```
 
+### 3. Configure `.env`
+
+```bash
+cp .env.example .env
+# Edit .env with your token, client ID, and proxy
+```
+
+### 4. Run
+
+```bash
+node start.js   # with auto-restart
+# or
+node index.js   # direct
+```
 
 ---
 
@@ -114,17 +129,16 @@ yt-dlp/
 
 | Command | Description |
 |---|---|
-| `/play <query\|url>` | Play a song or add it to queue |
-| `/skip` | Skip the current song (instant for Admin/DJ, vote otherwise) |
+| `/play <query\|url>` | Play a song, playlist, or YouTube mix |
+| `/skip` | Skip current song (instant for Admin/DJ, vote otherwise) |
 | `/stop` | Stop music and clear queue |
 | `/pause` | Pause playback |
 | `/resume` | Resume playback |
-| `/queue` | View the queue |
-| `/nowplaying` | Show current track with progress bar |
-| `/247` | Toggle 24/7 mode (stay in VC, preserve queue) |
+| `/queue` | View the current queue (up to 10 shown) |
+| `/nowplaying` | Show current track with live progress bar |
 | `/invite` | Get the bot invite link |
 
-> **Skip rules:** Admins (`Manage Server` permission) and members with a role named **DJ** can skip instantly. Everyone else needs ≥50% of listeners to vote. If you're alone in VC, always instant.
+> **Skip rules:** Members with **`Manage Server`** permission or a role named **`DJ`** (case-insensitive) skip instantly. If you're alone in VC, always instant. Otherwise a vote is needed — **2 listeners = 1 vote, 3 = 2 votes, 4 = 2 votes, 5 = 3 votes** (≥50%, rounded up).
 
 ---
 
@@ -144,6 +158,16 @@ Mitsuha/
 
 ---
 
+## 🔐 Security Notes
+
+- **No secret leaks** — yt-dlp/FFmpeg subprocesses receive a minimal environment (no `DISCORD_TOKEN`, no database credentials)
+- **Input sanitization** — all user queries are unicode-normalized and validated against a YouTube-only allowlist
+- **Process isolation** — SIGTERM + SIGKILL escalation ensures no zombie FFmpeg processes
+- **Rate limiting** — 3s per-user cooldown on `/play`, 50-song hard queue cap
+- **No arbitrary URLs** — only `youtube.com`, `youtu.be`, `music.youtube.com` are accepted
+
+---
+
 ## 🔧 Troubleshooting
 
 | Error | Fix |
@@ -154,6 +178,7 @@ Mitsuha/
 | `Voice connection timeout` | Check bot permissions in the voice channel |
 | Music stops mid-song | Update FFmpeg to 5.x+ |
 | Slow download speed | YouTube throttling — use a different proxy exit node |
+| Bot joins but plays silence | FFmpeg can't decode format — update yt-dlp |
 
 ---
 
