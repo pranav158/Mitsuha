@@ -10,7 +10,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/discord.js-v15-5865F2?style=flat-square&logo=discord&logoColor=white"/>
   <img src="https://img.shields.io/badge/yt--dlp-latest-FF0000?style=flat-square&logo=youtube&logoColor=white"/>
-  <img src="https://img.shields.io/badge/FFmpeg-6%2B-007808?style=flat-square&logo=ffmpeg&logoColor=white"/>
+  <img src="https://img.shields.io/badge/FFmpeg-5%2B-007808?style=flat-square&logo=ffmpeg&logoColor=white"/>
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933?style=flat-square&logo=node.js&logoColor=white"/>
   <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square"/>
 </p>
