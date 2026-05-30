@@ -184,4 +184,4 @@ Mitsuha/
 
 ## 📄 License
 
-MIT — see [LICENSE](LICENSE). © 2026 MysticFOX
+MIT — see [LICENSE](LICENSE). © 2026 Mystic
