@@ -69,7 +69,7 @@ No intermediate URLs. yt-dlp streams directly into FFmpeg's stdin. This eliminat
 > YouTube detects and blocks non-residential IPs. Running on bare VPS = `HTTP 403` or empty search results.
 
 **Recommended setup:**
-1. Get a **residential proxy** (WireGuard + WireProxy works great)
+1. Get a **residential proxy**
 2. Set `PROXY_URL=socks5://127.0.0.1:1080` in your `.env`
 3. The bot tests the proxy connection on startup and logs the result
 
